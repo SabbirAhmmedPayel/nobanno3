@@ -117,7 +117,6 @@ class UserManagementViewSet(viewsets.ModelViewSet):
 
         return Response({"status": f"Topped up {amount} units.", "user": UserSerializer(user).data})
 
-
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
     serializer_class = PostSerializer
@@ -187,6 +186,53 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
+    def search_by_keyword(self, request):
+        """
+        Filters posts by a text keyword match and sorts the entire match list 
+        by absolute distance relative to the user's coordinates (nearest first).
+        """
+        query_str = request.query_params.get('q', '').strip()
+        lat_param = request.query_params.get('lat')
+        lng_param = request.query_params.get('lng')
+
+        # lat and lng are required to establish a relative sorting baseline
+        if not query_str or not lat_param or not lng_param:
+            return Response(
+                {"error": "Missing required parameters. Please provide 'q', 'lat', and 'lng'."}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            lat = float(lat_param)
+            lng = float(lng_param)
+        except ValueError:
+            return Response(
+                {"error": "Invalid coordinates. Ensure 'lat' and 'lng' are valid numbers."}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 1. Filter database records by matching text criteria
+        queryset = self.get_queryset().filter(
+            Q(title__icontains=query_str) | Q(description__icontains=query_str)
+        )
+
+        # 2. Serialize database matches
+        serializer = self.get_serializer(queryset, many=True)
+        results = serializer.data
+
+        # 3. Inject exact haversine distance calculations into the payloads
+        for post_data in results:
+            post_lat = float(post_data['latitude'])
+            post_lng = float(post_data['longitude'])
+            
+            # Attaches exact calculated distance relative to user location
+            post_data['distance_km'] = calculate_haversine(lat, lng, post_lat, post_lng)
+
+        # 4. Sort arrays inside Python by distance (ascending = nearest to farthest)
+        results.sort(key=lambda x: x['distance_km'])
+
+        return Response(results, status=status.HTTP_200_OK)
 
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer

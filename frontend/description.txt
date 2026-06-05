@@ -1,0 +1,34 @@
+whwn opening the app for the first time 
+
+ask for location access. get the location 
+
+ask what are you . options : customer , farmer . select a option 
+
+do u have a account then login or sign up 
+forget passowrd option . -> send code to email . or option to get otp by phone 
+
+
+if sign up then return to  login page 
+
+
+login done 
+
+now the app will have a bottom bar .
+
+
+if you are a cutomer .
+
+then leftmost is home . here there will be a searchbar on top . under the searchbar there
+will be filters and sorting option 
+
+
+right of that cart . 
+right of that my account - theere will be name phone and invoices ( previous perchases )
+
+current walltet ballance . 
+
+
+if you are a famer almost similar 
+
+just instead of home you will have create new post . 
+

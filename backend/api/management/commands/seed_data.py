@@ -36,9 +36,9 @@ class Command(BaseCommand):
 
         # 2. Farmers
         farmer_jamal = User.objects.create_user(
-            username="farmer_jamal",
+            username="fjamal",
             email="jamal@farms.com",
-            password="farmerpassword123",
+            password="f1",
             role="farmer",
             name="Jamal Uddin",
             phone_number="01712345678",
@@ -50,9 +50,9 @@ class Command(BaseCommand):
         Token.objects.create(user=farmer_jamal)
 
         farmer_rahim = User.objects.create_user(
-            username="farmer_rahim",
+            username="frahim",
             email="rahim@bogura.com",
-            password="farmerpassword123",
+            password="f2",
             role="farmer",
             name="Rahim Mia",
             phone_number="01812345678",
@@ -65,9 +65,9 @@ class Command(BaseCommand):
 
         # 3. Customers
         customer_sadia = User.objects.create_user(
-            username="customer_sadia",
+            username="csadia",
             email="sadia@restaurant.com",
-            password="customerpassword123",
+            password="c123",
             role="customer",
             name="Sadia's Kitchen",
             phone_number="01912345678",
@@ -80,9 +80,9 @@ class Command(BaseCommand):
         Token.objects.create(user=customer_sadia)
 
         customer_hasan = User.objects.create_user(
-            username="customer_hasan",
+            username="chasan",
             email="hasan@retail.com",
-            password="customerpassword123",
+            password="c23",
             role="customer",
             name="Hasan Groceries",
             phone_number="01512345678",
