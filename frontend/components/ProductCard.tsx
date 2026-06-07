@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Post } from '@/services/api';
 import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
@@ -16,6 +16,15 @@ export function ProductCard({ post, onPress, imageTint = Colors.lightGreen }: Pr
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9}>
       <View style={[styles.imageArea, { backgroundColor: imageTint }]}>
+        {/* Added Image component to render the post image */}
+        {post.image ? (
+          <Image 
+            source={{ uri: post.image }} 
+            style={StyleSheet.absoluteFill} 
+            resizeMode="cover" 
+          />
+        ) : null}
+        
         <View style={styles.distanceBadge}>
           <Text style={styles.distanceText}>
             {post.distance_km != null ? `${post.distance_km} km` : 'Nearby'}

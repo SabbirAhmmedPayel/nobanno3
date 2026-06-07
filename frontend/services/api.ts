@@ -32,6 +32,7 @@ export interface Post {
   total_price: number;
   distance_km?: number;
   created_at: string;
+  image: string | null ; 
 }
 
 export interface Order {

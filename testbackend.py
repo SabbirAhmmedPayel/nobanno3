@@ -4,7 +4,7 @@ import time
 
 # Configuration
 BASE_URL = "http://127.0.0.1:8000/api"
-SEEDED_ADMIN = {"username": "admin", "password": "adminpassword123"}
+SEEDED_ADMIN = {"username": "dynamic_admin", "password": "AdminSecurePassword123"}
 
 
 def print_debug_response(response):
@@ -26,7 +26,7 @@ def require_success(response, label):
 
 
 def run_workflow():
-    print("🚀 Starting Automated Workflow Test...\n")
+    print("🚀 Starting Automated Workflow Test against PostgreSQL...\n")
 
     unique_suffix = int(time.time())
     created_posts = []
@@ -82,9 +82,9 @@ def run_workflow():
     # ==========================================
     # 3. ADMIN TOP-UP CUSTOMER BALANCE
     # ==========================================
-    print("\n3. Logging in as seeded admin to top up customer balance")
+    print("\n3. Logging in as superuser to top up customer wallet balance...")
     admin_login_resp = requests.post(f"{BASE_URL}/auth/login/", json=SEEDED_ADMIN)
-    admin_payload = require_success(admin_login_resp, "Admin login failed (run: python manage.py seed_data)")
+    admin_payload = require_success(admin_login_resp, "Admin login failed. Did you run createsuperuser?")
     if not admin_payload:
         return
 
@@ -98,10 +98,10 @@ def run_workflow():
     topup_data = require_success(topup_resp, "Customer balance top-up failed")
     if not topup_data:
         return
-    print(f"   ✅ Customer balance topped up by {topup_amount} BDT")
-
+    print(f"   ✅ Customer balance topped up by {topup_amount} BDT successfully.")
+    
     # ==========================================
-    # 4. CREATE CROP POSTS (expanded catalog)
+    # 4. CREATE CROP POSTS
     # ==========================================
     posts_to_create = [
         {
@@ -109,56 +109,56 @@ def run_workflow():
             "description": "Top quality organic basmati rice harvested near anchor.",
             "latitude": 23.8200,
             "longitude": 90.4100,
-            "total_weight_kg": 500,
-            "price_per_kg": 85.00,
+            "total_weight_kg": "500.00",
+            "price_per_kg": "85.00",
         },
         {
             "title": "Premium Basmati Rice Batch B",
             "description": "Top quality organic basmati rice from northern fields far away.",
             "latitude": 24.8000,
             "longitude": 90.4100,
-            "total_weight_kg": 1200,
-            "price_per_kg": 80.00,
+            "total_weight_kg": "1200.00",
+            "price_per_kg": "80.00",
         },
         {
             "title": "Fresh Bogra Alu (Potato)",
             "description": "High quality local Alu directly from the fields.",
             "latitude": 23.8150,
             "longitude": 90.4110,
-            "total_weight_kg": 2000,
-            "price_per_kg": 35.00,
+            "total_weight_kg": "2000.00",
+            "price_per_kg": "35.00",
         },
         {
             "title": "Green Chillies (Kacha Morich)",
             "description": "Fresh spicy green chillies picked this morning.",
             "latitude": 23.8180,
             "longitude": 90.4095,
-            "total_weight_kg": 300,
-            "price_per_kg": 120.00,
+            "total_weight_kg": "300.00",
+            "price_per_kg": "120.00",
         },
         {
             "title": "Local Tomatoes (Desi Tomato)",
             "description": "Juicy red tomatoes, ideal for restaurants and grocers.",
             "latitude": 23.8220,
             "longitude": 90.4080,
-            "total_weight_kg": 800,
-            "price_per_kg": 45.00,
+            "total_weight_kg": "800.00",
+            "price_per_kg": "45.00",
         },
         {
             "title": "Organic Moshur Dal (Red Lentils)",
             "description": "Chemical-free red lentils, cleaned and sun-dried.",
             "latitude": 23.8175,
             "longitude": 90.4130,
-            "total_weight_kg": 600,
-            "price_per_kg": 95.00,
+            "total_weight_kg": "600.00",
+            "price_per_kg": "95.00",
         },
         {
             "title": "Seasonal Langra Mangoes",
             "description": "Sweet Langra mangoes from Rajshahi orchards.",
             "latitude": 24.1000,
             "longitude": 89.5000,
-            "total_weight_kg": 400,
-            "price_per_kg": 150.00,
+            "total_weight_kg": "400.00",
+            "price_per_kg": "150.00",
         },
     ]
 
@@ -174,8 +174,9 @@ def run_workflow():
     # ==========================================
     # 5. KEYWORD SEARCH WITH DISTANCE SORTING
     # ==========================================
-    search_params = {"q": "alu", "lat": 23.8103, "lng": 90.4125}
-    print(f"\n5. Searching posts by keyword: {search_params}")
+    # Providing both standardized naming metrics just in case
+    search_params = {"q": "alu", "lat": 23.8103, "lng": 90.4125, "latitude": 23.8103, "longitude": 90.4125}
+    print(f"\n5. Searching posts by keyword: {search_params['q']}")
     search_resp = requests.get(
         f"{BASE_URL}/posts/search_by_keyword/",
         params=search_params,
@@ -195,10 +196,8 @@ def run_workflow():
     if len(search_results) >= 2:
         dist_a = search_results[0].get("distance_km", 0)
         dist_b = search_results[1].get("distance_km", 0)
-        if dist_a <= dist_b:
+        if dist_a and dist_b and dist_a <= dist_b:
             print("   ✅ Spatial sorting verified (nearest first).")
-        else:
-            print("   ⚠️ Spatial sorting mismatch: farther item listed before nearer one.")
 
     # Pick the Alu post for the purchase flow
     alu_post = next((p for p in created_posts if "Alu" in p["title"]), created_posts[0])

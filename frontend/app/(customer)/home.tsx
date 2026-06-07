@@ -23,7 +23,7 @@ const imageTints = [Colors.lightGreen, '#FFE4C4', Colors.paleYellow, Colors.sage
 
 export default function CustomerHomeScreen() {
   const router = useRouter();
-  const { token, location, user } = useAuth();
+  const { token, location } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
@@ -132,18 +132,10 @@ export default function CustomerHomeScreen() {
         {CATEGORIES.map((cat) => (
           <TouchableOpacity
             key={cat}
-            style={[
-              styles.chip,
-              category === cat && styles.chipActive,
-            ]}
+            style={[styles.chip, category === cat && styles.chipActive]}
             onPress={() => setCategory(cat)}
           >
-            <Text
-              style={[
-                styles.chipText,
-                category === cat && styles.chipTextActive,
-              ]}
-            >
+            <Text style={[styles.chipText, category === cat && styles.chipTextActive]}>
               {cat}
             </Text>
           </TouchableOpacity>
@@ -170,12 +162,7 @@ export default function CustomerHomeScreen() {
               style={[styles.sortChip, sortBy === opt && styles.chipActive]}
               onPress={() => setSortBy(opt)}
             >
-              <Text
-                style={[
-                  styles.chipText,
-                  sortBy === opt && styles.chipTextActive,
-                ]}
-              >
+              <Text style={[styles.chipText, sortBy === opt && styles.chipTextActive]}>
                 {opt}
               </Text>
             </TouchableOpacity>
@@ -186,13 +173,9 @@ export default function CustomerHomeScreen() {
       <ScrollView
         style={styles.list}
         contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <Text style={styles.count}>
-          {sorted.length} listings near you
-        </Text>
+        <Text style={styles.count}>{sorted.length} listings near you</Text>
         {loading ? (
           <ActivityIndicator color={Colors.darkGreen} style={{ marginTop: 40 }} />
         ) : sorted.length === 0 ? (
@@ -213,122 +196,26 @@ export default function CustomerHomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.paleGreen,
-  },
-  header: {
-    backgroundColor: Colors.headerGreen,
-    paddingTop: 48,
-    paddingBottom: Spacing.md,
-    paddingHorizontal: Spacing.md,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  delivering: {
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-    color: Colors.lightGreen,
-  },
-  location: {
-    fontFamily: Fonts.bold,
-    fontSize: 18,
-    color: Colors.white,
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.mediumGreen,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: Radius.pill,
-    paddingHorizontal: Spacing.md,
-    gap: Spacing.sm,
-  },
-  searchInput: {
-    flex: 1,
-    fontFamily: Fonts.regular,
-    fontSize: 14,
-    color: Colors.white,
-    paddingVertical: Spacing.sm,
-  },
-  categories: {
-    maxHeight: 52,
-    backgroundColor: Colors.paleGreen,
-  },
-  categoriesContent: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    gap: Spacing.sm,
-    alignItems: 'center',
-  },
-  chip: {
-    backgroundColor: Colors.lightGreen,
-    borderRadius: Radius.pill,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-  },
-  chipActive: {
-    backgroundColor: Colors.darkGreen,
-  },
-  chipText: {
-    fontFamily: Fonts.medium,
-    fontSize: 13,
-    color: Colors.darkGreen,
-  },
-  chipTextActive: {
-    color: Colors.white,
-  },
-  filterBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: Spacing.sm,
-  },
-  filterText: {
-    fontFamily: Fonts.medium,
-    fontSize: 13,
-    color: Colors.darkGreen,
-  },
-  sortRow: {
-    maxHeight: 44,
-  },
-  sortChip: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.pill,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  list: {
-    flex: 1,
-  },
-  listContent: {
-    padding: Spacing.md,
-    paddingBottom: Spacing.xl,
-  },
-  count: {
-    fontFamily: Fonts.regular,
-    fontSize: 14,
-    color: Colors.textMuted,
-    marginBottom: Spacing.md,
-  },
-  empty: {
-    fontFamily: Fonts.regular,
-    fontSize: 15,
-    color: Colors.textMuted,
-    textAlign: 'center',
-    marginTop: 40,
-  },
+  container: { flex: 1, backgroundColor: Colors.paleGreen },
+  header: { backgroundColor: Colors.headerGreen, paddingTop: 48, paddingBottom: Spacing.md, paddingHorizontal: Spacing.md },
+  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md },
+  delivering: { fontFamily: Fonts.regular, fontSize: 12, color: Colors.lightGreen },
+  location: { fontFamily: Fonts.bold, fontSize: 18, color: Colors.white },
+  avatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.mediumGreen, alignItems: 'center', justifyContent: 'center' },
+  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: Radius.pill, paddingHorizontal: Spacing.md, gap: Spacing.sm },
+  searchInput: { flex: 1, fontFamily: Fonts.regular, fontSize: 14, color: Colors.white, paddingVertical: Spacing.sm },
+  categories: { maxHeight: 52, backgroundColor: Colors.paleGreen },
+  categoriesContent: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, gap: Spacing.sm, alignItems: 'center' },
+  chip: { backgroundColor: Colors.lightGreen, borderRadius: Radius.pill, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm },
+  chipActive: { backgroundColor: Colors.darkGreen },
+  chipText: { fontFamily: Fonts.medium, fontSize: 13, color: Colors.darkGreen },
+  chipTextActive: { color: Colors.white },
+  filterBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: Spacing.sm },
+  filterText: { fontFamily: Fonts.medium, fontSize: 13, color: Colors.darkGreen },
+  sortRow: { maxHeight: 44 },
+  sortChip: { backgroundColor: Colors.white, borderRadius: Radius.pill, paddingHorizontal: Spacing.md, paddingVertical: 6, borderWidth: 1, borderColor: Colors.border },
+  list: { flex: 1 },
+  listContent: { padding: Spacing.md, paddingBottom: Spacing.xl },
+  count: { fontFamily: Fonts.regular, fontSize: 14, color: Colors.textMuted, marginBottom: Spacing.md },
+  empty: { fontFamily: Fonts.regular, fontSize: 15, color: Colors.textMuted, textAlign: 'center', marginTop: 40 },
 });

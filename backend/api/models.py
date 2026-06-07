@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db.models import Sum
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class User(AbstractUser):
     ROLE_CHOICES = (
@@ -25,13 +26,14 @@ class User(AbstractUser):
         if not reviews.exists():
             return 0.0
         return round(sum(r.rating for r in reviews) / len(reviews), 2)
-
+    
     @property
     def total_sales(self):
         if self.role != 'farmer':
             return None
-        from .models import Order
-        return Order.objects.filter(post__farmer=self, status='completed').aggregate(
+        from django.apps import apps
+        OrderModel = apps.get_model('api', 'Order')
+        return OrderModel.objects.filter(post__farmer=self, status='completed').aggregate(
             sum=Sum('total_paid')
         )['sum'] or 0.00
 
@@ -85,7 +87,7 @@ class Order(models.Model):
 class Review(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='given_reviews', limit_choices_to={'role': 'customer'})
     farmer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_reviews', limit_choices_to={'role': 'farmer'})
-    rating = models.IntegerField()  # 1 to 5 stars
+    rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     comment = models.TextField(blank=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
     image = models.ImageField(upload_to='review_images/', blank=True, null=True)

@@ -6,6 +6,7 @@ import {
   ScrollView,
   Alert,
   TouchableOpacity,
+  Image, // Required for rendering the product images
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,16 +29,14 @@ export default function ProductDetailScreen() {
 
   useEffect(() => {
     if (!id) return;
+    // Fetching post data; ensures post.image is available if serializer is configured
     api.getPost(Number(id), token).then(setPost).catch(() => setPost(null));
   }, [id, token]);
 
   if (!post) {
     return (
       <View style={styles.container}>
-        <ScreenHeader
-          title="Listing Detail"
-          onBack={() => router.back()}
-        />
+        <ScreenHeader title="Listing Detail" onBack={() => router.back()} />
         <Text style={styles.loading}>Loading...</Text>
       </View>
     );
@@ -67,8 +66,17 @@ export default function ProductDetailScreen() {
         onBack={() => router.back()}
       />
       <ScrollView contentContainerStyle={styles.content}>
+        {/* Gallery Section with dynamic Image rendering */}
         <View style={styles.gallery}>
-          <View style={styles.mainImage} />
+          {post.image ? (
+            <Image 
+              source={{ uri: post.image }} 
+              style={styles.mainImage} 
+              resizeMode="cover" 
+            />
+          ) : (
+            <View style={styles.mainImage} />
+          )}
           <View style={styles.thumbRow}>
             {[1, 2, 3].map((i) => (
               <View key={i} style={styles.thumb} />
@@ -76,15 +84,14 @@ export default function ProductDetailScreen() {
           </View>
         </View>
 
+        {/* Product Details Section */}
         <View style={styles.sellerCard}>
           <View style={styles.sellerAvatar}>
             <Ionicons name="person" size={28} color={Colors.white} />
           </View>
           <View style={styles.sellerInfo}>
             <Text style={styles.productTitle}>{post.title}</Text>
-            <Text style={styles.farmerName}>
-              {post.farmer_name || post.farmer_username}
-            </Text>
+            <Text style={styles.farmerName}>{post.farmer_name || post.farmer_username}</Text>
             <View style={styles.ratingRow}>
               {[1, 2, 3, 4, 5].map((i) => (
                 <Ionicons key={i} name="star" size={14} color={Colors.starGold} />
@@ -132,38 +139,20 @@ export default function ProductDetailScreen() {
             <Text style={styles.costValue}>৳ {productCost.toFixed(0)}</Text>
           </View>
           <View style={styles.costRow}>
-            <Text style={styles.costLabel}>
-              Shipping Est. (to your {location?.label ?? 'address'}):
-            </Text>
+            <Text style={styles.costLabel}>Shipping Est.:</Text>
             <Text style={styles.costValue}>৳ --</Text>
           </View>
           <View style={[styles.costRow, styles.costTotal]}>
             <Text style={styles.costLabel}>Total Estimate:</Text>
-            <Text style={styles.costValue}>
-              ৳ {productCost.toFixed(0)} + Shipping
-            </Text>
+            <Text style={styles.costValue}>৳ {productCost.toFixed(0)} + Shipping</Text>
           </View>
         </View>
 
-        {post.description ? (
-          <Text style={styles.description}>{post.description}</Text>
-        ) : null}
+        {post.description ? <Text style={styles.description}>{post.description}</Text> : null}
 
         <View style={styles.actionRow}>
-          <PrimaryButton
-            title="Place Bulk Order"
-            onPress={addToCart}
-            variant="sage"
-            style={styles.primaryAction}
-          />
-          <PrimaryButton
-            title="Message Farmer"
-            onPress={() =>
-              Alert.alert('Coming soon', 'In-app messaging is not wired yet.')
-            }
-            variant="secondary"
-            style={styles.secondaryAction}
-          />
+          <PrimaryButton title="Place Bulk Order" onPress={addToCart} variant="sage" style={styles.primaryAction} />
+          <PrimaryButton title="Message Farmer" onPress={() => Alert.alert('Coming soon')} variant="secondary" style={styles.secondaryAction} />
         </View>
       </ScrollView>
     </View>
@@ -171,197 +160,39 @@ export default function ProductDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.paleGreen,
-  },
-  loading: {
-    fontFamily: Fonts.regular,
-    textAlign: 'center',
-    marginTop: 40,
-    color: Colors.textMuted,
-  },
-  content: {
-    padding: Spacing.md,
-    paddingBottom: Spacing.xl,
-  },
-  gallery: {
-    marginBottom: Spacing.md,
-  },
-  mainImage: {
-    height: 180,
-    backgroundColor: Colors.lightGreen,
-    borderRadius: Radius.md,
-    marginBottom: Spacing.sm,
-  },
-  thumbRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  thumb: {
-    flex: 1,
-    height: 60,
-    backgroundColor: Colors.cream,
-    borderRadius: Radius.sm,
-  },
-  sellerCard: {
-    flexDirection: 'row',
-    backgroundColor: Colors.cream,
-    borderRadius: Radius.lg,
-    padding: Spacing.md,
-    gap: Spacing.md,
-    marginBottom: Spacing.md,
-  },
-  sellerAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.mediumGreen,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sellerInfo: {
-    flex: 1,
-  },
-  productTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 17,
-    color: Colors.textDark,
-  },
-  farmerName: {
-    fontFamily: Fonts.regular,
-    fontSize: 14,
-    color: Colors.textMuted,
-    marginTop: 2,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    marginTop: 4,
-  },
-  ratingText: {
-    fontFamily: Fonts.medium,
-    fontSize: 12,
-    color: Colors.textMuted,
-    marginLeft: 4,
-  },
-  verifiedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: Spacing.xs,
-  },
-  verifiedText: {
-    fontFamily: Fonts.medium,
-    fontSize: 11,
-    color: Colors.darkGreen,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  statBox: {
-    flex: 1,
-    backgroundColor: Colors.cream,
-    borderRadius: Radius.md,
-    padding: Spacing.sm,
-  },
-  statLabel: {
-    fontFamily: Fonts.regular,
-    fontSize: 11,
-    color: Colors.textMuted,
-  },
-  statValue: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 13,
-    color: Colors.textDark,
-    marginTop: 2,
-  },
-  sectionLabel: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 15,
-    color: Colors.textDark,
-    marginBottom: Spacing.sm,
-  },
-  qtyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    marginBottom: Spacing.md,
-  },
-  qtyBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.darkGreen,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  qtyBtnText: {
-    fontFamily: Fonts.bold,
-    fontSize: 20,
-    color: Colors.white,
-  },
-  qtyDisplay: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: Colors.textDark,
-    borderRadius: Radius.sm,
-    padding: Spacing.sm,
-    alignItems: 'center',
-  },
-  qtyValue: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 16,
-    color: Colors.textDark,
-  },
-  costBox: {
-    backgroundColor: Colors.paleGreen,
-    borderWidth: 1,
-    borderColor: Colors.textDark,
-    borderRadius: Radius.md,
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
-  },
-  costRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.xs,
-  },
-  costTotal: {
-    marginTop: Spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    paddingTop: Spacing.sm,
-  },
-  costLabel: {
-    fontFamily: Fonts.regular,
-    fontSize: 13,
-    color: Colors.textDark,
-    flex: 1,
-  },
-  costValue: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 13,
-    color: Colors.textDark,
-  },
-  description: {
-    fontFamily: Fonts.regular,
-    fontSize: 14,
-    color: Colors.textMuted,
-    lineHeight: 22,
-    marginBottom: Spacing.md,
-  },
-  actionRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  primaryAction: {
-    flex: 2,
-  },
-  secondaryAction: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: Colors.paleGreen },
+  loading: { fontFamily: Fonts.regular, textAlign: 'center', marginTop: 40, color: Colors.textMuted },
+  content: { padding: Spacing.md, paddingBottom: Spacing.xl },
+  gallery: { marginBottom: Spacing.md },
+  mainImage: { height: 180, backgroundColor: Colors.lightGreen, borderRadius: Radius.md, marginBottom: Spacing.sm },
+  thumbRow: { flexDirection: 'row', gap: Spacing.sm },
+  thumb: { flex: 1, height: 60, backgroundColor: Colors.cream, borderRadius: Radius.sm },
+  sellerCard: { flexDirection: 'row', backgroundColor: Colors.cream, borderRadius: Radius.lg, padding: Spacing.md, gap: Spacing.md, marginBottom: Spacing.md },
+  sellerAvatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.mediumGreen, alignItems: 'center', justifyContent: 'center' },
+  sellerInfo: { flex: 1 },
+  productTitle: { fontFamily: Fonts.bold, fontSize: 17, color: Colors.textDark },
+  farmerName: { fontFamily: Fonts.regular, fontSize: 14, color: Colors.textMuted, marginTop: 2 },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 2, marginTop: 4 },
+  ratingText: { fontFamily: Fonts.medium, fontSize: 12, color: Colors.textMuted, marginLeft: 4 },
+  verifiedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: Spacing.xs },
+  verifiedText: { fontFamily: Fonts.medium, fontSize: 11, color: Colors.darkGreen },
+  statsRow: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.md },
+  statBox: { flex: 1, backgroundColor: Colors.cream, borderRadius: Radius.md, padding: Spacing.sm },
+  statLabel: { fontFamily: Fonts.regular, fontSize: 11, color: Colors.textMuted },
+  statValue: { fontFamily: Fonts.semiBold, fontSize: 13, color: Colors.textDark, marginTop: 2 },
+  sectionLabel: { fontFamily: Fonts.semiBold, fontSize: 15, color: Colors.textDark, marginBottom: Spacing.sm },
+  qtyRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginBottom: Spacing.md },
+  qtyBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.darkGreen, alignItems: 'center', justifyContent: 'center' },
+  qtyBtnText: { fontFamily: Fonts.bold, fontSize: 20, color: Colors.white },
+  qtyDisplay: { flex: 1, borderWidth: 1, borderColor: Colors.textDark, borderRadius: Radius.sm, padding: Spacing.sm, alignItems: 'center' },
+  qtyValue: { fontFamily: Fonts.semiBold, fontSize: 16, color: Colors.textDark },
+  costBox: { backgroundColor: Colors.paleGreen, borderWidth: 1, borderColor: Colors.textDark, borderRadius: Radius.md, padding: Spacing.md, marginBottom: Spacing.md },
+  costRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: Spacing.xs },
+  costTotal: { marginTop: Spacing.sm, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: Spacing.sm },
+  costLabel: { fontFamily: Fonts.regular, fontSize: 13, color: Colors.textDark, flex: 1 },
+  costValue: { fontFamily: Fonts.semiBold, fontSize: 13, color: Colors.textDark },
+  description: { fontFamily: Fonts.regular, fontSize: 14, color: Colors.textMuted, lineHeight: 22, marginBottom: Spacing.md },
+  actionRow: { flexDirection: 'row', gap: Spacing.sm },
+  primaryAction: { flex: 2 },
+  secondaryAction: { flex: 1 },
 });

@@ -28,7 +28,7 @@ interface AuthContextValue {
     username: string;
     email: string;
     password: string;
-    role: UserRole;
+    role: UserRole; // Passed explicitly from registration screen form
     name?: string;
     phone_number?: string;
     address?: string;
@@ -53,6 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [location, setLocationState] = useState<LocationData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Load existing persistent session state on mount
   useEffect(() => {
     (async () => {
       try {
@@ -67,6 +68,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (storedUser) setUser(JSON.parse(storedUser));
         if (storedRole) setRoleState(storedRole as UserRole);
         if (storedLocation) setLocationState(JSON.parse(storedLocation));
+      } catch (e) {
+        console.error("Failed to load auth session:", e);
       } finally {
         setIsLoading(false);
       }
@@ -86,14 +89,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const persistSession = useCallback(async (nextToken: string, nextUser: User) => {
     setToken(nextToken);
     setUser(nextUser);
-    setRoleState(nextUser.role);
+    setRoleState(nextUser.role); // Automatically sync context role state from user object
     await AsyncStorage.multiSet([
       [KEYS.token, nextToken],
       [KEYS.user, JSON.stringify(nextUser)],
-      [KEYS.role, nextUser.role],
+      [KEYS.role, nextUser.role], // Keeps local device storage synced
     ]);
   }, []);
 
+  // Login: Automatically resolves role via user properties returned by API
   const login = useCallback(
     async (username: string, password: string) => {
       const result = await api.login(username, password);
@@ -103,6 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [persistSession],
   );
 
+  // Registration: Directly receives role from your sign up form input fields
   const register = useCallback(
     async (data: {
       username: string;
@@ -114,26 +119,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       address?: string;
     }) => {
       await api.register({
-        ...data,
-        role: role ?? data.role,
+        ...data, // Explicitly forwards data.role passed into the function argument
         latitude: location?.latitude,
         longitude: location?.longitude,
       });
     },
-    [location, role],
+    [location],
   );
 
   const logout = useCallback(async () => {
     setToken(null);
     setUser(null);
-    await AsyncStorage.multiRemove([KEYS.token, KEYS.user]);
+    setRoleState(null);
+    await AsyncStorage.multiRemove([KEYS.token, KEYS.user, KEYS.role]);
   }, []);
 
   const refreshProfile = useCallback(async () => {
     if (!token) return;
     const profile = await api.getProfile(token);
     setUser(profile);
+    setRoleState(profile.role);
     await AsyncStorage.setItem(KEYS.user, JSON.stringify(profile));
+    await AsyncStorage.setItem(KEYS.role, profile.role);
   }, [token]);
 
   const value = useMemo(

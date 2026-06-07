@@ -164,8 +164,8 @@ class PostViewSet(viewsets.ModelViewSet):
                     longitude__range=(lng - lng_range, lng + lng_range)
                 )
 
-                # Serialize and compute exact distance, then sort in python
-                serializer = self.get_serializer(queryset, many=True)
+                # Explicitly inject request context into the serializer here!
+                serializer = self.get_serializer(queryset, many=True, context={'request': request})
                 data = serializer.data
                 
                 filtered_data = []
@@ -181,9 +181,13 @@ class PostViewSet(viewsets.ModelViewSet):
                 filtered_data.sort(key=lambda x: x['distance_km'])
                 return Response(filtered_data)
             except ValueError:
-                return Response({"error": "Invalid geo parameters. Ensure lat, lng, and radius are numbers."}, status=400)
+                return Response(
+                    {"error": "Invalid geo parameters. Ensure lat, lng, and radius are numbers."}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-        serializer = self.get_serializer(queryset, many=True)
+        # Normal list fallback - inject request context explicitly
+        serializer = self.get_serializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
@@ -196,7 +200,6 @@ class PostViewSet(viewsets.ModelViewSet):
         lat_param = request.query_params.get('lat')
         lng_param = request.query_params.get('lng')
 
-        # lat and lng are required to establish a relative sorting baseline
         if not query_str or not lat_param or not lng_param:
             return Response(
                 {"error": "Missing required parameters. Please provide 'q', 'lat', and 'lng'."}, 
@@ -217,23 +220,21 @@ class PostViewSet(viewsets.ModelViewSet):
             Q(title__icontains=query_str) | Q(description__icontains=query_str)
         )
 
-        # 2. Serialize database matches
-        serializer = self.get_serializer(queryset, many=True)
+        # 2. Serialize database matches with absolute request context injected!
+        serializer = self.get_serializer(queryset, many=True, context={'request': request})
         results = serializer.data
 
         # 3. Inject exact haversine distance calculations into the payloads
         for post_data in results:
             post_lat = float(post_data['latitude'])
             post_lng = float(post_data['longitude'])
-            
-            # Attaches exact calculated distance relative to user location
             post_data['distance_km'] = calculate_haversine(lat, lng, post_lat, post_lng)
 
-        # 4. Sort arrays inside Python by distance (ascending = nearest to farthest)
+        # 4. Sort arrays inside Python by distance
         results.sort(key=lambda x: x['distance_km'])
 
-        return Response(results, status=status.HTTP_200_OK)
-
+        return Response(results, status=status.HTTP_200_OK) 
+    
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
 

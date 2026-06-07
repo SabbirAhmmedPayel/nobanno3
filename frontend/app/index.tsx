@@ -15,23 +15,23 @@ import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
 
 export default function LocationScreen() {
   const router = useRouter();
-  const { setLocation, token, user, role, location, isLoading } = useAuth();
+  const { setLocation, token, user, location, isLoading } = useAuth();
   const [loading, setLoading] = useState(false);
 
   React.useEffect(() => {
     if (isLoading) return;
+    
+    // 1. If tokens exist, route directly to the appropriate role dashboard
     if (token && user) {
       router.replace(user.role === 'farmer' ? '/(farmer)/dashboard' : '/(customer)/home');
       return;
     }
-    if (location && role) {
-      router.replace('/auth/login');
-      return;
-    }
+    
+    // 2. If location is set but no token exists, go straight to login
     if (location) {
-      router.replace('/role');
+      router.replace('/auth/login');
     }
-  }, [isLoading, token, user, location, role, router]);
+  }, [isLoading, token, user, location, router]);
 
   const requestLocation = async () => {
     setLoading(true);
@@ -45,9 +45,11 @@ export default function LocationScreen() {
         setLoading(false);
         return;
       }
+      
       const pos = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
       });
+      
       let label = 'Your area';
       try {
         const [geo] = await Location.reverseGeocodeAsync({
@@ -60,14 +62,17 @@ export default function LocationScreen() {
             .join(', ') || label;
         }
       } catch {
-        // keep default label
+        // Keep fallback label on reverse geocode failures
       }
+      
       await setLocation({
         latitude: pos.coords.latitude,
         longitude: pos.coords.longitude,
         label,
       });
-      router.push('/role');
+
+      // 3. Changed routing target from old /role to /auth/login
+      router.replace('/auth/login');
     } catch {
       Alert.alert('Error', 'Could not get your location. Please try again.');
     } finally {

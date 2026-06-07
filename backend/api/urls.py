@@ -24,4 +24,5 @@ urlpatterns = [
     # Custom dashboards
     path('farmer/wallet/', FarmerWalletView.as_view(), name='farmer-wallet'),
     path('admin/analytics/', AdminAnalyticsView.as_view(), name='admin-analytics'),
+   
 ]
