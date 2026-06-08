@@ -10,14 +10,16 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
-import { api, Order } from '@/services/api';
+import { api, Order, Post } from '@/services/api';
 import { OrderCard } from '@/components/OrderCard';
+import { ProductCard } from '@/components/ProductCard';
 import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
 
 export default function FarmerDashboardScreen() {
   const router = useRouter();
   const { token, user, refreshProfile } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [myPosts, setMyPosts] = useState<Post[]>([]);
   const [wallet, setWallet] = useState<string>('0');
   const [refreshing, setRefreshing] = useState(false);
   const [shippingId, setShippingId] = useState<number | null>(null);
@@ -25,13 +27,15 @@ export default function FarmerDashboardScreen() {
   const load = useCallback(async () => {
     if (!token) return;
     await refreshProfile();
-    const [orderData, walletData] = await Promise.all([
+    const [orderData, walletData, postsData] = await Promise.all([
       api.getOrders(token),
       api.getFarmerWallet(token),
+      user?.id ? api.getPosts(token, { farmer_id: user.id }) : Promise.resolve([]),
     ]);
     setOrders(orderData);
     setWallet(walletData.balance);
-  }, [token, refreshProfile]);
+    setMyPosts(postsData);
+  }, [token, user?.id, refreshProfile]);
 
   useFocusEffect(
     useCallback(() => {
@@ -130,7 +134,19 @@ export default function FarmerDashboardScreen() {
         ))}
 
         {orders.length === 0 && (
-          <Text style={styles.empty}>No orders yet. Create a listing to get started.</Text>
+          <Text style={styles.empty}>No orders yet.</Text>
+        )}
+
+        <Text style={[styles.sectionTitle, { marginTop: Spacing.lg }]}>My Posts</Text>
+        {myPosts.map((post) => (
+          <ProductCard
+            key={post.id}
+            post={post}
+            onPress={() => {}}
+          />
+        ))}
+        {myPosts.length === 0 && (
+          <Text style={styles.empty}>No posts yet. Create a listing to get started.</Text>
         )}
       </ScrollView>
     </View>

@@ -4,3 +4,5 @@ django-cors-headers>=4.3.0
 pillow>=10.2.0
 python-dotenv>=1.0.1
 psycopg2-binary>=2.9.9
+i18next>=23.0.0
+react-i18next>=14.0.0

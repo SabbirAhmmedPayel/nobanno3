@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,76 +18,63 @@ import { ApiError } from '@/services/api';
 import { Colors, Fonts, Spacing } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import '../../localization/i18n'; // Ensure the config is loaded
 
-// Explicit types for our runtime configs
 type LoginIdentifier = 'username' | 'email' | 'phone';
 type UserRole = 'farmer' | 'customer';
 
 export default function LoginScreen(): React.JSX.Element {
   const router = useRouter();
-  const { login , setRole } = useAuth();
-  const { i18n } = useTranslation();
+  const { login } = useAuth();
+  const { t, i18n } = useTranslation();
 
-  // Functional configurations typed explicitly
+  // Functional configurations
   const [loginIdentifier, setLoginIdentifier] = useState<LoginIdentifier>('username');
-  const [userRole, setUserRole] = useState<UserRole>('farmer');
-
-  // Form fields
   const [identityInput, setIdentityInput] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-
-  // UI states
   const [loading, setLoading] = useState<boolean>(false);
   const [showPass, setShowPass] = useState<boolean>(false);
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
 
+  // Force re-render on language change
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const handleLanguageChange = () => setTick((prev) => prev + 1);
+    i18n.on('languageChanged', handleLanguageChange);
+    return () => { i18n.off('languageChanged', handleLanguageChange); };
+  }, []);
+
   const toggleLanguage = (): void => {
-    const nextLng = i18n.language === 'en' ? 'bn' : 'en';
-    i18n.changeLanguage(nextLng);
+    i18n.changeLanguage(i18n.language === 'en' ? 'bn' : 'en');
   };
 
   const handleLogin = async (): Promise<void> => {
     if (!identityInput || !password) {
-      Alert.alert(
-        i18n.language === 'en' ? 'Missing fields' : 'তথ্য খালি রয়েছে',
-        i18n.language === 'en' ? 'Please fill in all details.' : 'অনুগ্রহ করে সব তথ্য পূরণ করুন।'
-      );
+      Alert.alert(t('Missing fields'), t('Please fill in all details.'));
       return;
     }
     setLoading(true);
-
-
-    // main part to care 
-
     try {
-      // Identity input is handled dynamically by your backend custom MultiBackend logic
       const loggedInUser = await login(identityInput, password);
-
-
       if (loggedInUser?.role === 'farmer') {
         router.replace('/(farmer)/dashboard');
       } else if (loggedInUser?.role === 'customer') {
         router.replace('/(customer)/home');
       } else {
-        // Fallback fallback if role is undefined or unexpected
-        throw new Error(i18n.language === 'en' ? 'Unknown user role' : 'অজানা ব্যবহারকারীর ভূমিকা');
+        throw new Error(t('Unknown user role'));
       }
-    }
-
-
-
-    catch (err) {
-      const msg = err instanceof ApiError ? err.message : (i18n.language === 'en' ? 'Login failed' : 'লগইন ব্যর্থ হয়েছে');
-      Alert.alert(i18n.language === 'en' ? 'Login failed' : 'লগইন ব্যর্থ হয়েছে', msg);
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : t('Login failed');
+      Alert.alert(t('Login failed'), msg);
     } finally {
       setLoading(false);
     }
   };
 
   const getIdentifierLabel = (): string => {
-    if (loginIdentifier === 'username') return i18n.language === 'en' ? 'Username' : 'ইউজারনেম';
-    if (loginIdentifier === 'email') return i18n.language === 'en' ? 'Email Address' : 'ইমেইল অ্যাড্রেস';
-    return i18n.language === 'en' ? 'Phone Number' : 'মোবাইল নম্বর';
+    if (loginIdentifier === 'username') return t('Username');
+    if (loginIdentifier === 'email') return t('Email Address');
+    return t('Phone Number');
   };
 
   const getKeyboardType = (): KeyboardTypeOptions => {
@@ -97,56 +84,30 @@ export default function LoginScreen(): React.JSX.Element {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container}>
-
-        {/* Top Header Row with Language Selector */}
         <View style={styles.topRow}>
           <Text style={styles.brand}>Nobanno</Text>
           <TouchableOpacity style={styles.langToggle} onPress={toggleLanguage}>
             <Ionicons name="language" size={16} color={Colors.darkGreen} style={{ marginRight: 4 }} />
-            <Text style={styles.langToggleText}>
-              {i18n.language === 'en' ? 'বাংলা' : 'English'}
-            </Text>
+            <Text style={styles.langToggleText}>{i18n.language === 'en' ? 'বাংলা' : 'English'}</Text>
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.title}>{i18n.language === 'en' ? 'Welcome back' : 'স্বাগতম'}</Text>
-        <Text style = {styles.subtitle} >
-          {i18n.language === 'en'? 'log in ' : ' লগইন করুন' }
-        </Text>   
+        <Text style={styles.title}>{t('Welcome back')}</Text>
+        <Text style={styles.subtitle}>{t('log in')}</Text>
 
-
-        {/* 2. Identifier Dropdown Selector */}
         <View style={styles.dropdownSection}>
-          <Text style={styles.selectorLabel}>
-            {i18n.language === 'en' ? 'Login Using:' : 'লগইন মাধ্যম:'}
-          </Text>
-          <TouchableOpacity
-            style={styles.dropdownHeader}
-            onPress={() => setShowDropdown(!showDropdown)}
-          >
-            <Text style={styles.dropdownHeaderCtx}>
-              {loginIdentifier.toUpperCase()}
-            </Text>
+          <Text style={styles.selectorLabel}>{t('Login Using:')}</Text>
+          <TouchableOpacity style={styles.dropdownHeader} onPress={() => setShowDropdown(!showDropdown)}>
+            <Text style={styles.dropdownHeaderCtx}>{loginIdentifier.toUpperCase()}</Text>
             <Ionicons name={showDropdown ? 'chevron-up' : 'chevron-down'} size={18} color={Colors.darkGreen} />
           </TouchableOpacity>
 
           {showDropdown && (
             <View style={styles.dropdownList}>
               {(['username', 'email', 'phone'] as LoginIdentifier[]).map((type) => (
-                <TouchableOpacity
-                  key={type}
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    setLoginIdentifier(type);
-                    setShowDropdown(false);
-                    setIdentityInput('');
-                  }}
-                >
+                <TouchableOpacity key={type} style={styles.dropdownItem} onPress={() => { setLoginIdentifier(type); setShowDropdown(false); }}>
                   <Text style={[styles.dropdownItemText, loginIdentifier === type && styles.activeDropdownItemText]}>
                     {type.toUpperCase()}
                   </Text>
@@ -156,56 +117,43 @@ export default function LoginScreen(): React.JSX.Element {
           )}
         </View>
 
-        {/* Dynamic Identity Input Field */}
         <InputField
           label={getIdentifierLabel()}
           value={identityInput}
           onChangeText={setIdentityInput}
           autoCapitalize="none"
           keyboardType={getKeyboardType()}
-          placeholder={i18n.language === 'en' ? `Enter your ${loginIdentifier}` : `আপনার ${loginIdentifier} লিখুন`}
+          placeholder={t('Enter your') + ' ' + loginIdentifier}
         />
 
-        {/* Password Entry Field with Inline Eye Toggle Icon */}
         <View style={styles.passwordWrapper}>
           <View style={{ flex: 1 }}>
             <InputField
-              label={i18n.language === 'en' ? "Password" : "পাসওয়ার্ড"}
+              label={t("Password")}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPass}
-              placeholder={i18n.language === 'en' ? "Enter your password" : "আপনার পাসওয়ার্ড দিন"}
+              placeholder={t("Enter your password")}
             />
           </View>
-          <TouchableOpacity style={styles.eyeIconContainer} onPress={() => setShowPass((prev) => !prev)}>
+          <TouchableOpacity style={styles.eyeIconContainer} onPress={() => setShowPass(!showPass)}>
             <Ionicons name={showPass ? 'eye-off' : 'eye'} size={22} color={Colors.mediumGreen} />
           </TouchableOpacity>
         </View>
 
-        {/* Forget Password */}
         <Link href="/auth/forgot-password" asChild>
           <TouchableOpacity>
-            <Text style={styles.forgot}>
-              {i18n.language === 'en' ? 'Forgot password?' : 'পাসওয়ার্ড ভুলে গেছেন?'}
-            </Text>
+            <Text style={styles.forgot}>{t('Forgot password?')}</Text>
           </TouchableOpacity>
         </Link>
 
-        <PrimaryButton
-          title={i18n.language === 'en' ? "Login" : "লগইন করুন"}
-          onPress={handleLogin}
-          loading={loading}
-        />
+        <PrimaryButton title={t("Login")} onPress={handleLogin} loading={loading} />
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            {i18n.language === 'en' ? "Don't have an account?" : "অ্যাকাউন্ট নেই?"}
-          </Text>
+          <Text style={styles.footerText}>{t("Don't have an account?")}</Text>
           <Link href="/auth/register" asChild>
             <TouchableOpacity>
-              <Text style={styles.link}>
-                {i18n.language === 'en' ? 'Sign up' : 'নিবন্ধন করুন'}
-              </Text>
+              <Text style={styles.link}>{t('Sign up')}</Text>
             </TouchableOpacity>
           </Link>
         </View>
@@ -214,6 +162,7 @@ export default function LoginScreen(): React.JSX.Element {
   );
 }
 
+// ... Keep your existing 'styles' object here
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: Colors.paleGreen },
   container: {

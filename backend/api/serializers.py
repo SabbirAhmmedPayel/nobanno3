@@ -59,9 +59,6 @@ class PostSerializer(serializers.ModelSerializer):
     farmer_name = serializers.ReadOnlyField(source='farmer.name')
     farmer_username = serializers.ReadOnlyField(source='farmer.username')
     total_price = serializers.SerializerMethodField()
-    # 1. Override the default image serialization
-    image = serializers.SerializerMethodField()
-
     class Meta:
         model = Post
         fields = '__all__'
@@ -70,20 +67,15 @@ class PostSerializer(serializers.ModelSerializer):
     def get_total_price(self, obj):
         return obj.total_price
 
-    # 2. Build an absolute URI containing your local IP address
-    def get_image(self, obj):
-        if not obj.image:
-            return None
-            
-        request = self.context.get('request')
-        if request is not None:
-            # If the request context is passed, Django automatically replaces 127.0.0.1 
-            # with your computer's network IP (e.g., http://192.168.1.100:8000/media/...)
-            return request.build_absolute_uri(obj.image.url)
-            
-        # Hardcoded fallback for your Expo environment if request context is missing
-        # TODO: Replace 192.168.1.100 with your exact Wi-Fi IP address from your Expo terminal
-        return f"http://192.168.1.100:8000{obj.image.url}"
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if instance.image:
+            request = self.context.get('request')
+            if request is not None:
+                representation['image'] = request.build_absolute_uri(instance.image.url)
+            else:
+                representation['image'] = f"http://192.168.1.100:8000{instance.image.url}"
+        return representation
 
     def validate_total_weight_kg(self, value):
         if value <= 0:

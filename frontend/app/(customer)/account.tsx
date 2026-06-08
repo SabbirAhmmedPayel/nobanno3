@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
+ 
   ScrollView,
   TouchableOpacity,
   RefreshControl,
@@ -14,6 +14,8 @@ import { api, Order } from '@/services/api';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
+import { globalstyles } from '@/styles/global';
+
 
 export default function CustomerAccountScreen() {
   const router = useRouter();
@@ -57,58 +59,58 @@ export default function CustomerAccountScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={globalstyles.container}>
       <ScreenHeader title="My Account" subtitle="Nobanno" />
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={globalstyles.content}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <View style={styles.profileCard}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
+        <View style={globalstyles.profileCard}>
+          <View style={globalstyles.avatar}>
+            <Text style={globalstyles.avatarText}>
               {(user?.name || user?.username || '?')[0].toUpperCase()}
             </Text>
           </View>
-          <View style={styles.profileInfo}>
-            <Text style={styles.name}>{user?.name || user?.username}</Text>
-            <Text style={styles.phone}>
+          <View style={globalstyles.profileInfo}>
+            <Text style={globalstyles.name}>{user?.name || user?.username}</Text>
+            <Text style={globalstyles.phone}>
               {user?.phone_number || 'No phone set'}
             </Text>
-            <Text style={styles.address}>
+            <Text style={globalstyles.address}>
               {user?.address || 'No address set'}
             </Text>
           </View>
         </View>
 
-        <View style={styles.walletCard}>
-          <Text style={styles.walletLabel}>Current Wallet Balance</Text>
-          <Text style={styles.walletValue}>
+        <View style={globalstyles.walletCard}>
+          <Text style={globalstyles.walletLabel}>Current Wallet Balance</Text>
+          <Text style={globalstyles.walletValue}>
             ৳ {parseFloat(user?.balance ?? '0').toFixed(2)}
           </Text>
         </View>
 
-        <Text style={styles.sectionTitle}>Previous Purchases (Invoices)</Text>
+        <Text style={globalstyles.sectionTitle}>Previous Purchases (Invoices)</Text>
         {orders.length === 0 ? (
-          <Text style={styles.empty}>No orders yet.</Text>
+          <Text style={globalstyles.empty}>No orders yet.</Text>
         ) : (
           orders.map((order) => (
-            <View key={order.id} style={styles.invoiceCard}>
-              <View style={styles.invoiceHeader}>
-                <Text style={styles.invoiceTitle}>Order #{order.id}</Text>
+            <View key={order.id} style={globalstyles.invoiceCard}>
+              <View style={globalstyles.invoiceHeader}>
+                <Text style={globalstyles.invoiceTitle}>Order #{order.id}</Text>
                 <View
                   style={[
-                    styles.statusBadge,
-                    order.status === 'completed' && styles.statusDone,
-                    order.status === 'shipped' && styles.statusShipped,
+                    globalstyles.statusBadge,
+                    order.status === 'completed' && globalstyles.statusDone,
+                    order.status === 'shipped' && globalstyles.statusShipped,
                   ]}
                 >
-                  <Text style={styles.statusText}>{order.status}</Text>
+                  <Text style={globalstyles.statusText}>{order.status}</Text>
                 </View>
               </View>
-              <Text style={styles.invoiceProduct}>{order.post_title}</Text>
-              <Text style={styles.invoiceDetail}>
+              <Text style={globalstyles.invoiceProduct}>{order.post_title}</Text>
+              <Text style={globalstyles.invoiceDetail}>
                 {parseFloat(order.quantity_kg).toFixed(0)} kg · ৳{' '}
                 {parseFloat(order.total_paid).toFixed(0)}
               </Text>
@@ -135,7 +137,9 @@ export default function CustomerAccountScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+/*
+
+const globalstyles = globalstylesheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.paleGreen,
@@ -262,3 +266,4 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 });
+*/

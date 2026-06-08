@@ -150,13 +150,14 @@ export const api = {
 
   getPosts: (
     token: string | null,
-    params?: { search?: string; lat?: number; lng?: number; radius?: number },
+    params?: { search?: string; lat?: number; lng?: number; radius?: number; farmer_id?: number },
   ) => {
     const query = new URLSearchParams();
     if (params?.search) query.set('search', params.search);
     if (params?.lat) query.set('lat', String(params.lat));
     if (params?.lng) query.set('lng', String(params.lng));
     if (params?.radius) query.set('radius', String(params.radius));
+    if (params?.farmer_id) query.set('farmer_id', String(params.farmer_id));
     const qs = query.toString();
     return request<Post[]>(`/posts/${qs ? `?${qs}` : ''}`, { method: 'GET' }, token);
   },
@@ -176,7 +177,7 @@ export const api = {
   getPost: (id: number, token?: string | null) =>
     request<Post>(`/posts/${id}/`, { method: 'GET' }, token),
 
-  createPost: (
+  createPost: async (
     token: string,
     body: {
       title: string;
@@ -185,13 +186,55 @@ export const api = {
       price_per_kg: number;
       latitude: number;
       longitude: number;
+      imageUri?: string;
     },
-  ) =>
-    request<Post>(
-      '/posts/',
-      { method: 'POST', body: JSON.stringify(body) },
-      token,
-    ),
+  ) => {
+    if (body.imageUri) {
+      const formData = new FormData();
+      formData.append('title', body.title);
+      formData.append('description', body.description);
+      formData.append('total_weight_kg', body.total_weight_kg.toString());
+      formData.append('price_per_kg', body.price_per_kg.toString());
+      formData.append('latitude', body.latitude.toString());
+      formData.append('longitude', body.longitude.toString());
+      
+      const filename = body.imageUri.split('/').pop() || 'image.jpg';
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+      // @ts-ignore
+      formData.append('image', {
+        uri: body.imageUri,
+        name: filename,
+        type,
+      });
+
+      const response = await fetch(`${API_BASE_URL}/posts/`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = await response.text();
+        }
+        throw new ApiError('Failed to create post', response.status, errorData);
+      }
+
+      return response.json() as Promise<Post>;
+    } else {
+      return request<Post>(
+        '/posts/',
+        { method: 'POST', body: JSON.stringify(body) },
+        token,
+      );
+    }
+  },
 
   getOrders: (token: string) =>
     request<Order[]>('/orders/', { method: 'GET' }, token),
