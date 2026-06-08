@@ -12,9 +12,11 @@ import { api, Order } from '@/services/api';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { OrderCard } from '@/components/OrderCard';
 import { Colors, Fonts, Spacing } from '@/constants/theme';
+import { useTranslation } from 'react-i18next';
 
 export default function FarmerOrdersScreen() {
   const { token } = useAuth();
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [shippingId, setShippingId] = useState<number | null>(null);
@@ -55,38 +57,41 @@ export default function FarmerOrdersScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <ScreenHeader title="Orders" subtitle="Nobanno Farmer Hub" />
-      <ScrollView
-        contentContainerStyle={styles.content}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        {orders.length === 0 ? (
-          <Text style={styles.empty}>No orders received yet.</Text>
-        ) : (
-          orders.map((order) => (
-            <OrderCard
-              key={order.id}
-              order={order}
-              variant={variantFor(order.status)}
-              actionLabel={
-                order.status === 'pending' ? 'Mark as Shipped' : undefined
-              }
-              onAction={
-                order.status === 'pending'
-                  ? () => shipOrder(order.id)
-                  : undefined
-              }
-              actionLoading={shippingId === order.id}
-            />
-          ))
-        )}
-      </ScrollView>
-    </View>
-  );
-}
+      <View style={styles.container}>
+        <ScreenHeader 
+          title={t('Orders')} 
+          subtitle={t('Nobanno Farmer Hub')} 
+        />
+        <ScrollView
+          contentContainerStyle={styles.content}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          {orders.length === 0 ? (
+            <Text style={styles.empty}>{t('No orders received yet.')}</Text>
+          ) : (
+            orders.map((order) => (
+              <OrderCard
+                key={order.id}
+                order={order}
+                variant={variantFor(order.status)}
+                actionLabel={
+                  order.status === 'pending' ? t('Mark as Shipped') : undefined
+                }
+                onAction={
+                  order.status === 'pending'
+                    ? () => shipOrder(order.id)
+                    : undefined
+                }
+                actionLoading={shippingId === order.id}
+              />
+            ))
+          )}
+        </ScrollView>
+      </View>
+    );
+  }
 
 const styles = StyleSheet.create({
   container: {

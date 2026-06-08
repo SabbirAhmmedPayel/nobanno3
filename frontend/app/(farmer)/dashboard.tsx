@@ -14,6 +14,7 @@ import { api, Order, Post } from '@/services/api';
 import { OrderCard } from '@/components/OrderCard';
 import { ProductCard } from '@/components/ProductCard';
 import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
+import { useTranslation } from 'react-i18next';
 
 export default function FarmerDashboardScreen() {
   const router = useRouter();
@@ -23,7 +24,9 @@ export default function FarmerDashboardScreen() {
   const [wallet, setWallet] = useState<string>('0');
   const [refreshing, setRefreshing] = useState(false);
   const [shippingId, setShippingId] = useState<number | null>(null);
+  const { t } = useTranslation();
 
+  
   const load = useCallback(async () => {
     if (!token) return;
     await refreshProfile();

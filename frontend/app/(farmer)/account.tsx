@@ -12,8 +12,11 @@ import { api } from '@/services/api';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
+import { useTranslation } from 'react-i18next';
 
 export default function FarmerAccountScreen() {
+
+  const { t } = useTranslation();
   const router = useRouter();
   const { token, user, logout, refreshProfile } = useAuth();
   const [wallet, setWallet] = useState({
@@ -50,7 +53,7 @@ export default function FarmerAccountScreen() {
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title="My Account" subtitle="Nobanno Farmer Hub" />
+      <ScreenHeader title={t("My Account")} subtitle={t("Nobanno Farmer Hub")} />
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={
@@ -102,7 +105,7 @@ export default function FarmerAccountScreen() {
         </View>
 
         <PrimaryButton
-          title="Logout"
+          title={t("Logout")}
           onPress={handleLogout}
           variant="secondary"
           style={{ marginTop: Spacing.xl }}
